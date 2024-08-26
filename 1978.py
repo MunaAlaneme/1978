@@ -83,11 +83,11 @@ async def main():
     def MUSIC_SETUP():
         global playlist, Music_end
         playlist = list()
-        playlist.append ( "./GameLauncher/assets/games/1978/audio/Kevin MacLeod - Space Fighter Loop.mp3" )
-        playlist.append ( "./GameLauncher/assets/games/1978/audio/Kevin MacLeod - Galactic Rap.mp3" )
-        playlist.append ( "./GameLauncher/assets/games/1978/audio/Kevin MacLeod - Brain Dance.mp3" )
-        playlist.append ( "./GameLauncher/assets/games/1978/audio/Kevin MacLeod - Cloud Dancer.mp3" )
-        playlist.append ( "./GameLauncher/assets/games/1978/audio/Kevin MacLeod - Mesmerizing Galaxy Loop.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Space Fighter Loop.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Galactic Rap.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Brain Dance.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Cloud Dancer.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Mesmerizing Galaxy Loop.mp3" )
         Music_end = pygame.USEREVENT
         pygame.mixer.music.load ( playlist[0] )  
         playlist.pop(0)
@@ -108,25 +108,25 @@ async def main():
 
     # Title and Icon and background
     pygame.display.set_caption("1978")
-    icon = pygame.image.load('./GameLauncher/assets/games/1978/img/SPACE FIGHTERS SVG icons8.png')
+    icon = pygame.image.load('./img/SPACE FIGHTERS SVG icons8.png')
     pygame.display.set_icon(icon)
-    background = pygame.image.load('./GameLauncher/assets/games/1978/img/5438849.jpg').convert_alpha()
+    background = pygame.image.load('./img/5438849.jpg').convert_alpha()
     background = pygame.transform.scale(background, (screen_width, screen_height))
     backgroundRect = pygame.Rect(background.get_rect())
-    background2 = load_svg('./GameLauncher/assets/games/1978/img/vignette.svg')
+    background2 = load_svg('./img/vignette.svg')
     background2 = pygame.transform.scale(background2, (screen_width, screen_height))
     backgroundRect2 = pygame.Rect(background2.get_rect())
 
     # Player
-    # playerImg = pygame.image.load('./GameLauncher/assets/games/1978/img/player.png').convert_alpha()
-    playerImg = load_svg('./GameLauncher/assets/games/1978/img/player.svg')
+    # playerImg = pygame.image.load('./img/player.png').convert_alpha()
+    playerImg = load_svg('./img/player.svg')
     playerPos = [(1280 - playerImg.get_width()/2.5)/2, (720 - playerImg.get_height()/2.5)/2 + 240]
     playerPosChange = [0, 0]
     playerRect = pygame.Rect(playerImg.get_rect(center = playerPos))
 
     def player():
-        # playerImg = pygame.image.load('./GameLauncher/assets/games/1978/img/player.png').convert_alpha()
-        playerImg = load_svg('./GameLauncher/assets/games/1978/img/player.svg')
+        # playerImg = pygame.image.load('./img/player.png').convert_alpha()
+        playerImg = load_svg('./img/player.svg')
         playerImg = pygame.transform.scale(playerImg, (playerImg.get_width()/2.5 * WindowScale, playerImg.get_height()/2.5 * WindowScale))
         playerRect = pygame.Rect(playerImg.get_rect(center = playerPos))
         screen.blit(playerImg, ((playerPos[0]+camShake[0])*WindowXscale, (playerPos[1]+camShake[1])*WindowYscale))
@@ -139,8 +139,8 @@ async def main():
     enemyRect = []
     for i in range(24):
         enemyImageNumber.append(random.randint(1,9))
-        # enemyImg = pygame.image.load(f"./GameLauncher/assets/games/1978/img/alien{enemyImageNumber}.png").convert_alpha()
-        enemyImg.append(load_svg(f"./GameLauncher/assets/games/1978/img/alien{enemyImageNumber[i]}.svg"))
+        # enemyImg = pygame.image.load(f"./img/alien{enemyImageNumber}.png").convert_alpha()
+        enemyImg.append(load_svg(f"./img/alien{enemyImageNumber[i]}.svg"))
         enemyPos.append([random.randint(100, screen_width - 20 - int(enemyImg[i].get_width()//1.7)), random.randint(50, 200)])
         enemyPosChange.append([(random.randint(0, 1) * 280) - 140, 0])
         enemyRect.append(pygame.Rect(enemyPos[i][0], enemyPos[i][1], enemyImg[i].get_width(), enemyImg[i].get_height()))
@@ -151,19 +151,19 @@ async def main():
         global enemyPosChange
         global enemyImageNumber
         enemyImageNumber[i] = random.randint(1,9)
-        enemyImg[i] = load_svg(f"./GameLauncher/assets/games/1978/img/alien{enemyImageNumber[i]}.svg")
+        enemyImg[i] = load_svg(f"./img/alien{enemyImageNumber[i]}.svg")
         enemyPos[i] = [random.randint(100, screen_width - 20 - int(enemyImg[i].get_width()//1.7)), random.randint(50, 200)]
         enemyPosChange[i] = [(random.randint(0, 1) * 280) - 140, 0]
 
     for i in range(24):
         enemyImageNumber[i] = random.randint(1,9)
-        enemyImg[i] = load_svg(f"./GameLauncher/assets/games/1978/img/alien{enemyImageNumber[i]}.svg")
+        enemyImg[i] = load_svg(f"./img/alien{enemyImageNumber[i]}.svg")
         enemyPos[i] = [random.randint(100, screen_width - 20 - int(enemyImg[i].get_width()//1.7)), random.randint(50, 200)]
         enemyPosChange[i] = [(random.randint(0, 1) * 280) - 140, 0]
 
     def enemy(i):
-        #enemyImg = pygame.image.load(f"./GameLauncher/assets/games/1978/img/alien{enemyImageNumber}.png").convert_alpha()
-        enemyImg[i] = load_svg(f"./GameLauncher/assets/games/1978/img/alien{enemyImageNumber[i]}.svg")
+        #enemyImg = pygame.image.load(f"./img/alien{enemyImageNumber}.png").convert_alpha()
+        enemyImg[i] = load_svg(f"./img/alien{enemyImageNumber[i]}.svg")
         enemyImg[i] = pygame.transform.scale(enemyImg[i], (enemyImg[i].get_width()*WindowScale/2, enemyImg[i].get_height()*WindowScale/2))
         enemyRect[i] = pygame.Rect(enemyPos[i][0], enemyPos[i][1], enemyImg[i].get_width(), enemyImg[i].get_height())
         screen.blit(enemyImg[i], ((enemyPos[i][0]+camShake[0])*WindowXscale, (enemyPos[i][1]+camShake[1])*WindowYscale))
@@ -172,8 +172,8 @@ async def main():
     # Ready - You can't see the laser on the screen.
     # Fire - The laser is currently moving.
     PlayerLaserNum = 0
-    # playerLaserImg = pygame.image.load(f"./GameLauncher/assets/games/1978/img/PlayerLaser.png").convert_alpha()
-    playerLaserImg = load_svg(f"./GameLauncher/assets/games/1978/img/PlayerLaser.svg")
+    # playerLaserImg = pygame.image.load(f"./img/PlayerLaser.png").convert_alpha()
+    playerLaserImg = load_svg(f"./img/PlayerLaser.svg")
     playerLaserImg = pygame.transform.scale(playerLaserImg, (playerLaserImg.get_width()*5, playerLaserImg.get_height()*3))
     playerLaserPos = []
     playerLaserState = []
@@ -185,8 +185,8 @@ async def main():
         playerLaserRect.append(pygame.Rect(playerLaserPos[i][0] + playerLaserImg.get_width()*2, playerLaserPos[i][1] - playerLaserImg.get_height()*0.36, playerLaserImg.get_width(), playerLaserImg.get_height()))
 
     def playerLaser(num):
-        #playerLaserImg = pygame.image.load(f"./GameLauncher/assets/games/1978/img/PlayerLaser.png").convert_alpha()
-        playerLaserImg = load_svg(f"./GameLauncher/assets/games/1978/img/PlayerLaser.svg")
+        #playerLaserImg = pygame.image.load(f"./img/PlayerLaser.png").convert_alpha()
+        playerLaserImg = load_svg(f"./img/PlayerLaser.svg")
         playerLaserImg = pygame.transform.scale(playerLaserImg, (playerLaserImg.get_width()*WindowScale * 5, playerLaserImg.get_height()*WindowScale * 3))
         playerLaserRect[num] = pygame.Rect(playerLaserPos[i][0] + playerLaserImg.get_width()*2, playerLaserPos[i][1] - playerLaserImg.get_height()*0.36, playerLaserImg.get_width(), playerLaserImg.get_height())
         if playerLaserState[num] == "fire":
@@ -268,7 +268,7 @@ async def main():
                             playerLaserState[i] = "fire"
                             PlayerLaserNum += 1
                             playerLaserPos[i][1] = playerPos[1]+50
-                            pygame.mixer.Sound("./GameLauncher/assets/games/1978/audio/PlayerLaserShoot.wav").play()
+                            pygame.mixer.Sound("./audio/PlayerLaserShoot.wav").play()
                             break 
         if not pygame.mixer.music.get_busy():
             MUSIC_SETUP()
@@ -287,9 +287,9 @@ async def main():
         screen.fill((0, 0, 32))
         # Background Image
         if (WindowWidth, WindowHeight) != (background.get_width(), background.get_height()):
-            background = pygame.transform.scale(pygame.image.load('./GameLauncher/assets/games/1978/img/5438849.jpg'), (WindowWidth, WindowHeight))
-            background2 = pygame.transform.scale(load_svg('./GameLauncher/assets/games/1978/img/vignette.svg'), (WindowWidth, WindowHeight))
-        screen.blit(background, camShake)
+            background = pygame.transform.scale(pygame.image.load('./img/5438849.jpg'), (WindowWidth, WindowHeight))
+            background2 = pygame.transform.scale(load_svg('./img/vignette.svg'), (WindowWidth, WindowHeight))
+        screen.blit(background, (camShake[0]*WindowScale, camShake[1]*WindowScale))
         particles.append([[random.randint(screen_width*-1, screen_width), -100], [random.randint(0, 0) / 10 - 1, 300], random.randint(4, 6), -2, WHITE])
         for particle in particles:
             particle[0][0] += particle[1][0] * delta_time
@@ -347,11 +347,11 @@ async def main():
                     score += Decimal(100)
                     camShake2[0] += 12
                     camShake2[1] += 12
-                    pygame.mixer.Sound("./GameLauncher/assets/games/1978/audio/EnemyExplosion.wav").play()
+                    pygame.mixer.Sound("./audio/EnemyExplosion.wav").play()
                     for k in range(10):
                         particles.append([[playerLaserPos[i][0] + playerLaserImg.get_width()*2, playerLaserPos[i][1]], [math.sin(random.randrange(-180, 180))*240, math.cos(random.randrange(-180, 180))*240], random.randint(6, 9), -5, RED])
                     enemyImageNumber[j] = random.randint(1,9)
-                    enemyImg[j] = load_svg(f"./GameLauncher/assets/games/1978/img/alien{enemyImageNumber[j]}.svg")
+                    enemyImg[j] = load_svg(f"./img/alien{enemyImageNumber[j]}.svg")
                     enemyPos[j] = [random.randint(100, screen_width - 20 - int(enemyImg[j].get_width()//1.7)), random.randint(50, 200)]
                     enemyPosChange[j] = [(random.randint(0, 1) * 280) - 140, 0]
                     PlayerLaserNum -= 1
@@ -363,14 +363,15 @@ async def main():
             playerLaser(i)
             enemy(i)
         player()
-        screen.blit(background2, camShake)
+        screen.blit(background2, (camShake[0]*WindowScale, camShake[1]*WindowScale))
         PlayerLaserNum = constrain(PlayerLaserNum, 0, 24)
         scoreDisplay += (Decimal(score)-Decimal(scoreDisplay)) * Decimal(delta_time) * Decimal(5)
         scoreDisplay2 = round(Decimal(scoreDisplay))
         camShake = (random.randrange(-1, 1)*camShake2[0], random.randrange(-1, 1)*camShake2[1])
         camShake2[0] *= 0.01**delta_time
         camShake2[1] *= 0.01**delta_time
-        draw_text(f"Score: {Decimal(scoreDisplay2)}", font, (abs(math.cos(game_time * 1.5) * 255), abs(math.sin(game_time * 2) * 255), abs(math.cos(game_time * 2.5) * 255)), (0+camShake[0])*WindowScale, (30+camShake[1])*WindowScale, "centerh")
+        draw_text(f"1978", pygame.freetype.Font("./Fonts/Dosis/static/Dosis-Bold.ttf", round(108*WindowScale)), (100, 100, 100, 180), camShake[0]*WindowScale, camShake[1]*WindowScale, "center")
+        draw_text(f"Score: {Decimal(scoreDisplay2)}", font, (abs(math.cos(game_time * 1.5) * 255), abs(math.sin(game_time * 2) * 255), abs(math.cos(game_time * 2.5) * 255)), camShake[0]*WindowScale, (30+camShake[1])*WindowScale, "centerh")
         draw_text(f"Score: {Decimal(scoreDisplay2)}", font, (128, 64, 192), (1+camShake[0])*WindowScale, (31+camShake[1])*WindowScale, "centerh")
         pygame.display.flip()
         pygame.display.update()
@@ -406,8 +407,8 @@ async def main():
         camShake2[0] *= 0.01**delta_time
         camShake2[1] *= 0.01**delta_time
         if (WindowWidth, WindowHeight) != (background.get_width(), background.get_height()):
-            background = pygame.transform.scale(pygame.image.load('./GameLauncher/assets/games/1978/img/5438849.jpg'), (WindowWidth, WindowHeight))
-            background2 = pygame.transform.scale(load_svg('./GameLauncher/assets/games/1978/img/vignette.svg'), (WindowWidth, WindowHeight))
+            background = pygame.transform.scale(pygame.image.load('./img/5438849.jpg'), (WindowWidth, WindowHeight))
+            background2 = pygame.transform.scale(load_svg('./img/vignette.svg'), (WindowWidth, WindowHeight))
         screen.blit(background, camShake)
         screen.blit(background2, camShake)
         timeScale = 1
