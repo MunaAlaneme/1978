@@ -44,7 +44,6 @@ COUNT_DOWN = 3
 # https://stackoverflow.com/questions/20088670/pygame-smooth-fonts
 
 
-GameOver = 0
 async def main():
     global COUNT_DOWN
 
@@ -224,6 +223,7 @@ async def main():
     game_time = -0.000001
     timeScale = 1
     GameFPS = 1/delta_time #60
+    GameOver = 0
     def constrain(val, min_val, max_val):
         if val < min_val: return min_val
         if val > max_val: return max_val
@@ -376,55 +376,53 @@ async def main():
         pygame.display.flip()
         pygame.display.update()
         # clock.tick(24)
-
-    camShake = 40
-    while GameOver:
-        mos_x, mos_y = pygame.mouse.get_pos()
-        frames += 1
-        (WindowWidth, WindowHeight) = pygame.display.get_surface().get_size()
-        WindowXscale = WindowWidth / screen_width
-        WindowYscale = WindowHeight / screen_height
-        if WindowXscale < 0.01 and WindowYscale < 0.01:
-            WindowScale = min(WindowXscale, WindowYscale)
-        elif WindowXscale > 0.01 and WindowYscale > 0.01:
-            WindowScale = min(WindowXscale, WindowYscale)
-        else:
-            WindowScale = 0.01
-        delta_time = (time.time() - start_time) - game_time
-        start_time += (1-timeScale) * delta_time
-        delta_time *= timeScale
-        game_time = time.time() - start_time
-        if delta_time > 0:
-            GameFPS = 1/delta_time
-        else:
-            GameFPS = math.inf
-        font = pygame.freetype.Font("./Fonts/Dosis/static/Dosis-Bold.ttf", round(100*WindowScale))
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                GameOver = 0
-        pygame.mixer.music.stop()
-        camShake = (random.randrange(-1, 1)*camShake2[0], random.randrange(-1, 1)*camShake2[1])
-        camShake2[0] *= 0.01**delta_time
-        camShake2[1] *= 0.01**delta_time
-        if (WindowWidth, WindowHeight) != (background.get_width(), background.get_height()):
-            background = pygame.transform.scale(pygame.image.load('./img/5438849.jpg'), (WindowWidth, WindowHeight))
-            background2 = pygame.transform.scale(load_svg('./img/vignette.svg'), (WindowWidth, WindowHeight))
-        screen.blit(background, camShake)
-        screen.blit(background2, camShake)
-        timeScale = 1
-        draw_text(f"Score: {Decimal(scoreDisplay2)}", font, (abs(math.cos(game_time * 1.5) * 255), abs(math.sin(game_time * 2) * 255), abs(math.cos(game_time * 2.5) * 255)), (0+camShake[0])*WindowScale, (30+camShake[1])*WindowScale, "centerh")
-        draw_text(f"Score: {Decimal(scoreDisplay2)}", font, (128, 64, 192), (1+camShake[0])*WindowScale, (31+camShake[1])*WindowScale, "centerh")
-        draw_text("GAME OVER", font, (128, 64, 192), (-1+camShake[0])*WindowScale, (0+camShake[1])*WindowScale, "center")
-        draw_text("GAME OVER", font, (128, 64, 192), (1+camShake[0])*WindowScale, (0+camShake[1])*WindowScale, "center")
-        draw_text("GAME OVER", font, (128, 64, 192), (0+camShake[0])*WindowScale, (1+camShake[1])*WindowScale, "center")
-        draw_text("GAME OVER", font, (128, 64, 192), (-1+camShake[0])*WindowScale, (1+camShake[1])*WindowScale, "center")
-        draw_text("GAME OVER", font, (128, 64, 192), (1+camShake[0])*WindowScale, (1+camShake[1])*WindowScale, "center")
-        draw_text("GAME OVER", font, (128, 64, 192), (0+camShake[0])*WindowScale, (-1+camShake[1])*WindowScale, "center")
-        draw_text("GAME OVER", font, (128, 64, 192), (-1+camShake[0])*WindowScale, (-1+camShake[1])*WindowScale, "center")
-        draw_text("GAME OVER", font, (128, 64, 192), (1+camShake[0])*WindowScale, (-1+camShake[1])*WindowScale, "center")
-        draw_text("GAME OVER", font, (abs(math.cos(game_time * 1.5) * 255), abs(math.sin(game_time * 2) * 255), abs(math.cos(game_time * 2.5) * 255)), (0+camShake[0])*WindowScale, (0+camShake[1])*WindowScale, "center")
-        pygame.display.flip()
-        pygame.display.update()
+        while GameOver:
+            mos_x, mos_y = pygame.mouse.get_pos()
+            frames += 1
+            (WindowWidth, WindowHeight) = pygame.display.get_surface().get_size()
+            WindowXscale = WindowWidth / screen_width
+            WindowYscale = WindowHeight / screen_height
+            if WindowXscale < 0.01 and WindowYscale < 0.01:
+                WindowScale = min(WindowXscale, WindowYscale)
+            elif WindowXscale > 0.01 and WindowYscale > 0.01:
+                WindowScale = min(WindowXscale, WindowYscale)
+            else:
+                WindowScale = 0.01
+            delta_time = (time.time() - start_time) - game_time
+            start_time += (1-timeScale) * delta_time
+            delta_time *= timeScale
+            game_time = time.time() - start_time
+            if delta_time > 0:
+                GameFPS = 1/delta_time
+            else:
+                GameFPS = math.inf
+            font = pygame.freetype.Font("./Fonts/Dosis/static/Dosis-Bold.ttf", round(100*WindowScale))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    GameOver = 0
+            pygame.mixer.music.stop()
+            camShake = (random.randrange(-1, 1)*camShake2[0], random.randrange(-1, 1)*camShake2[1])
+            camShake2[0] *= 0.01**delta_time
+            camShake2[1] *= 0.01**delta_time
+            if (WindowWidth, WindowHeight) != (background.get_width(), background.get_height()):
+                background = pygame.transform.scale(pygame.image.load('./img/5438849.jpg'), (WindowWidth, WindowHeight))
+                background2 = pygame.transform.scale(load_svg('./img/vignette.svg'), (WindowWidth, WindowHeight))
+            screen.blit(background, camShake)
+            screen.blit(background2, camShake)
+            timeScale = 1
+            draw_text(f"Score: {Decimal(scoreDisplay2)}", font, (abs(math.cos(game_time * 1.5) * 255), abs(math.sin(game_time * 2) * 255), abs(math.cos(game_time * 2.5) * 255)), (0+camShake[0])*WindowScale, (30+camShake[1])*WindowScale, "centerh")
+            draw_text(f"Score: {Decimal(scoreDisplay2)}", font, (128, 64, 192), (1+camShake[0])*WindowScale, (31+camShake[1])*WindowScale, "centerh")
+            draw_text("GAME OVER", font, (128, 64, 192), (-1+camShake[0])*WindowScale, (0+camShake[1])*WindowScale, "center")
+            draw_text("GAME OVER", font, (128, 64, 192), (1+camShake[0])*WindowScale, (0+camShake[1])*WindowScale, "center")
+            draw_text("GAME OVER", font, (128, 64, 192), (0+camShake[0])*WindowScale, (1+camShake[1])*WindowScale, "center")
+            draw_text("GAME OVER", font, (128, 64, 192), (-1+camShake[0])*WindowScale, (1+camShake[1])*WindowScale, "center")
+            draw_text("GAME OVER", font, (128, 64, 192), (1+camShake[0])*WindowScale, (1+camShake[1])*WindowScale, "center")
+            draw_text("GAME OVER", font, (128, 64, 192), (0+camShake[0])*WindowScale, (-1+camShake[1])*WindowScale, "center")
+            draw_text("GAME OVER", font, (128, 64, 192), (-1+camShake[0])*WindowScale, (-1+camShake[1])*WindowScale, "center")
+            draw_text("GAME OVER", font, (128, 64, 192), (1+camShake[0])*WindowScale, (-1+camShake[1])*WindowScale, "center")
+            draw_text("GAME OVER", font, (abs(math.cos(game_time * 1.5) * 255), abs(math.sin(game_time * 2) * 255), abs(math.cos(game_time * 2.5) * 255)), (0+camShake[0])*WindowScale, (0+camShake[1])*WindowScale, "center")
+            pygame.display.flip()
+            pygame.display.update()
             
     print(f"""
 
