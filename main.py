@@ -1,4 +1,4 @@
-# July 8 - August 26, 2024
+# July 8 - August 27, 2024
 # 1978, Space Invaders released [???]
 
 import decimal
@@ -18,6 +18,8 @@ import asyncio
 import platform
 if sys.platform == "emscripten":
     platform.window.canvas.style.imageRendering = "pixelated"
+if (web := sys.platform in ('emscripten','wasi')):
+    from platform import window
 
 # ggenije
 # This game is powered by PyGame. The Windows build was built with PyInstaller. The web build was built with PygBag (Python web assembly).
@@ -229,6 +231,7 @@ async def main():
     backgroundRect2 = pygame.Rect(background2.get_rect())
     
     # Game Loop
+    global running
     running = 1
     score = Decimal(0)
     scoreDisplay = Decimal(0)
