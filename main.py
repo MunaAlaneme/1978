@@ -15,18 +15,9 @@ import random
 import keyboard
 from svg import Parser, Rasterizer
 import asyncio
-
-# Try to declare all your globals at once to facilitate compilation later.
-COUNT_DOWN = 3
-
-# Do init here
-# Load any assets right now to avoid lag at runtime or network errors.
-
-
-
-# Do not add anything from here, especially sys.exit/pygame.quit
-# asyncio.run is non-blocking on pygame-wasm and code would be executed
-# right before program start main()
+import platform
+if sys.platform == "emscripten":
+    platform.window.canvas.style.imageRendering = "pixelated"
 
 # ggenije
 # This game is powered by PyGame. The Windows build was built with PyInstaller. The web build was built with PygBag (Python web assembly).
@@ -43,10 +34,127 @@ COUNT_DOWN = 3
 # https://stackoverflow.com/questions/120584/svg-rendering-in-a-pygame-application-prior-to-pygame-2-0-pygame-did-not-suppo
 # https://stackoverflow.com/questions/20088670/pygame-smooth-fonts
 
+# Initialize pygame
+#pygame.mixer.pre_init(11025, 8, 2, 1024)
+pygame.mixer.pre_init(44100, 16, 2, 4096)
+pygame.init()
+pygame.mixer.init()
+screen_width = 1280
+screen_height = 720
+flags = DOUBLEBUF | pygame.RESIZABLE
+screen = pygame.display.set_mode((screen_width, screen_height), flags, 16)
+clock = pygame.time.Clock()
 
+font = pygame.freetype.Font("./Fonts/Dosis/static/Dosis-Bold.ttf", 36)
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+
+camShake = [0, 0]
+camShake2 = [0, 0]
+
+def distanceto(x1, y1, x2, y2):
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+def MUSIC_SETUP():
+    global playlist, Music_end
+    playlist = list()
+    if sys.platform == "emscripten":
+        playlist.append ( "./audio/Kevin MacLeod - Space Fighter Loop.ogg" )
+        playlist.append ( "./audio/Kevin MacLeod - Galactic Rap.ogg" )
+        playlist.append ( "./audio/Kevin MacLeod - Brain Dance.ogg" )
+        playlist.append ( "./audio/Kevin MacLeod - Cloud Dancer.ogg" )
+        playlist.append ( "./audio/Kevin MacLeod - Mesmerizing Galaxy Loop.ogg" )
+    else:
+        playlist.append ( "./audio/Kevin MacLeod - Space Fighter Loop.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Galactic Rap.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Brain Dance.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Cloud Dancer.mp3" )
+        playlist.append ( "./audio/Kevin MacLeod - Mesmerizing Galaxy Loop.mp3" )
+    Music_end = pygame.USEREVENT
+    pygame.mixer.music.load ( playlist[0] )  
+    playlist.pop(0)
+    pygame.mixer.music.play()
+    pygame.mixer.music.queue ( playlist[0] )
+    playlist.pop(0)
+    pygame.mixer.music.set_endevent ( Music_end )  
+
+# SVG! YAY!
+def load_svg(filename, scale=None, size=None, clip_from=None, fit_to=None, foramt='RGBA'):
+    svg = Parser.parse_file(filename)
+    scale = min((fit_to[0] / svg.width, fit_to[1] / svg.height)
+                if fit_to else ([scale if scale else 1] * 2))
+    width, height = size if size else (svg.width, svg.height)
+    surf_size = round(width * scale), round(height * scale)
+    buffer = Rasterizer().rasterize(svg, *surf_size, scale, *(clip_from if clip_from else 0, 0))
+    return  pygame.image.frombuffer(buffer, surf_size, foramt)
+
+# Player
+# playerImg = pygame.image.load('./img/player.png').convert_alpha()
+playerImg = load_svg('./img/player.svg')
+playerPos = [(1280 - playerImg.get_width()/2.5)/2, (720 - playerImg.get_height()/2.5)/2 + 240]
+playerPosChange = [0, 0]
+playerRect = pygame.Rect(playerImg.get_rect(center = playerPos))
+
+WindowScale = 1
+WindowXscale = 1
+WindowYscale = 1
+
+def player():
+    # playerImg = pygame.image.load('./img/player.png').convert_alpha()
+    playerImg = load_svg('./img/player.svg')
+    playerImg = pygame.transform.scale(playerImg, (playerImg.get_width()/2.5 * WindowScale, playerImg.get_height()/2.5 * WindowScale))
+    playerRect = pygame.Rect(playerImg.get_rect(center = playerPos))
+    screen.blit(playerImg, ((playerPos[0]+camShake[0])*WindowXscale, (playerPos[1]+camShake[1])*WindowYscale))
+
+# Enemy
+enemyImageNumber = []
+enemyImg = []
+enemyPos = []
+enemyPosChange = []
+enemyRect = []
+for i in range(24):
+    enemyImageNumber.append(random.randint(1,9))
+    # enemyImg = pygame.image.load(f"./img/alien{enemyImageNumber}.png").convert_alpha()
+    enemyImg.append(load_svg(f"./img/alien{enemyImageNumber[i]}.svg"))
+    enemyPos.append([random.randint(100, screen_width - 20 - int(enemyImg[i].get_width()//1.7)), random.randint(50, 200)])
+    enemyPosChange.append([(random.randint(0, 1) * 280) - 140, 0])
+    enemyRect.append(pygame.Rect(enemyPos[i][0], enemyPos[i][1], enemyImg[i].get_width(), enemyImg[i].get_height()))
+
+# PlayerLaser
+# Ready - You can't see the laser on the screen.
+# Fire - The laser is currently moving.
+PlayerLaserNum = 0
+# playerLaserImg = pygame.image.load(f"./img/PlayerLaser.png").convert_alpha()
+playerLaserImg = load_svg(f"./img/PlayerLaser.svg")
+playerLaserImg = pygame.transform.scale(playerLaserImg, (playerLaserImg.get_width()*5, playerLaserImg.get_height()*3))
+playerLaserPos = []
+playerLaserState = []
+playerLaserPosChange = [0, -1200]
+playerLaserRect = []
+for i in range(24):
+    playerLaserPos.append([0, 0])
+    playerLaserState.append("ready")
+    playerLaserRect.append(pygame.Rect(playerLaserPos[i][0] + playerLaserImg.get_width()*2, playerLaserPos[i][1] - playerLaserImg.get_height()*0.36, playerLaserImg.get_width(), playerLaserImg.get_height()))
+
+def constrain(val, min_val, max_val):
+    if val < min_val: return min_val
+    if val > max_val: return max_val
+    return val
+
+particles = []
+
+MUSIC_SETUP()
+
+# Try to declare all your globals at once to facilitate compilation later.
+COUNT_DOWN = 3
+
+# Do init here
+# Load any assets right now to avoid lag at runtime or network errors.
 async def main():
     global COUNT_DOWN
-
     # avoid this kind declaration, prefer the way above
     COUNT_DOWN = 3
 
@@ -55,95 +163,6 @@ async def main():
     # Usually 1/60 or more times per seconds on desktop
     # could be less on some mobile devices
     
-    # Initialize pygame
-    #pygame.mixer.pre_init(11025, 8, 2, 1024)
-    pygame.mixer.pre_init(44100, 16, 2, 4096)
-    pygame.init()
-    pygame.mixer.init()
-    screen_width = 1280
-    screen_height = 720
-    flags = DOUBLEBUF | pygame.RESIZABLE
-    screen = pygame.display.set_mode((screen_width, screen_height), flags, 16)
-    clock = pygame.time.Clock()
-
-    font = pygame.freetype.Font("./Fonts/Dosis/static/Dosis-Bold.ttf", 36)
-
-    # Colors
-    WHITE = (255, 255, 255)
-    BLACK = (0, 0, 0)
-    RED = (255, 0, 0)
-    GREEN = (0, 255, 0)
-    
-    camShake = [0, 0]
-    camShake2 = [0, 0]
-
-    def distanceto(x1, y1, x2, y2):
-        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-    def MUSIC_SETUP():
-        global playlist, Music_end
-        playlist = list()
-        playlist.append ( "./audio/Kevin MacLeod - Space Fighter Loop.mp3" )
-        playlist.append ( "./audio/Kevin MacLeod - Galactic Rap.mp3" )
-        playlist.append ( "./audio/Kevin MacLeod - Brain Dance.mp3" )
-        playlist.append ( "./audio/Kevin MacLeod - Cloud Dancer.mp3" )
-        playlist.append ( "./audio/Kevin MacLeod - Mesmerizing Galaxy Loop.mp3" )
-        Music_end = pygame.USEREVENT
-        pygame.mixer.music.load ( playlist[0] )  
-        playlist.pop(0)
-        pygame.mixer.music.play()
-        pygame.mixer.music.queue ( playlist[0] )
-        playlist.pop(0)
-        pygame.mixer.music.set_endevent ( Music_end )  
-
-    # SVG! YAY!
-    def load_svg(filename, scale=None, size=None, clip_from=None, fit_to=None, foramt='RGBA'):
-        svg = Parser.parse_file(filename)
-        scale = min((fit_to[0] / svg.width, fit_to[1] / svg.height)
-                    if fit_to else ([scale if scale else 1] * 2))
-        width, height = size if size else (svg.width, svg.height)
-        surf_size = round(width * scale), round(height * scale)
-        buffer = Rasterizer().rasterize(svg, *surf_size, scale, *(clip_from if clip_from else 0, 0))
-        return  pygame.image.frombuffer(buffer, surf_size, foramt)
-
-    # Title and Icon and background
-    pygame.display.set_caption("1978")
-    icon = pygame.image.load('./img/SPACE FIGHTERS SVG icons8.png')
-    pygame.display.set_icon(icon)
-    background = pygame.image.load('./img/5438849.jpg').convert_alpha()
-    background = pygame.transform.scale(background, (screen_width, screen_height))
-    backgroundRect = pygame.Rect(background.get_rect())
-    background2 = load_svg('./img/vignette.svg')
-    background2 = pygame.transform.scale(background2, (screen_width, screen_height))
-    backgroundRect2 = pygame.Rect(background2.get_rect())
-
-    # Player
-    # playerImg = pygame.image.load('./img/player.png').convert_alpha()
-    playerImg = load_svg('./img/player.svg')
-    playerPos = [(1280 - playerImg.get_width()/2.5)/2, (720 - playerImg.get_height()/2.5)/2 + 240]
-    playerPosChange = [0, 0]
-    playerRect = pygame.Rect(playerImg.get_rect(center = playerPos))
-
-    def player():
-        # playerImg = pygame.image.load('./img/player.png').convert_alpha()
-        playerImg = load_svg('./img/player.svg')
-        playerImg = pygame.transform.scale(playerImg, (playerImg.get_width()/2.5 * WindowScale, playerImg.get_height()/2.5 * WindowScale))
-        playerRect = pygame.Rect(playerImg.get_rect(center = playerPos))
-        screen.blit(playerImg, ((playerPos[0]+camShake[0])*WindowXscale, (playerPos[1]+camShake[1])*WindowYscale))
-
-    # Enemy
-    enemyImageNumber = []
-    enemyImg = []
-    enemyPos = []
-    enemyPosChange = []
-    enemyRect = []
-    for i in range(24):
-        enemyImageNumber.append(random.randint(1,9))
-        # enemyImg = pygame.image.load(f"./img/alien{enemyImageNumber}.png").convert_alpha()
-        enemyImg.append(load_svg(f"./img/alien{enemyImageNumber[i]}.svg"))
-        enemyPos.append([random.randint(100, screen_width - 20 - int(enemyImg[i].get_width()//1.7)), random.randint(50, 200)])
-        enemyPosChange.append([(random.randint(0, 1) * 280) - 140, 0])
-        enemyRect.append(pygame.Rect(enemyPos[i][0], enemyPos[i][1], enemyImg[i].get_width(), enemyImg[i].get_height()))
-
     def respawnEnemy(i):
         global enemyImg
         global enemyPos
@@ -167,22 +186,7 @@ async def main():
         enemyRect[i] = pygame.Rect(enemyPos[i][0], enemyPos[i][1], enemyImg[i].get_width(), enemyImg[i].get_height())
         screen.blit(enemyImg[i], ((enemyPos[i][0]+camShake[0])*WindowXscale, (enemyPos[i][1]+camShake[1])*WindowYscale))
 
-    # PlayerLaser
-    # Ready - You can't see the laser on the screen.
-    # Fire - The laser is currently moving.
     PlayerLaserNum = 0
-    # playerLaserImg = pygame.image.load(f"./img/PlayerLaser.png").convert_alpha()
-    playerLaserImg = load_svg(f"./img/PlayerLaser.svg")
-    playerLaserImg = pygame.transform.scale(playerLaserImg, (playerLaserImg.get_width()*5, playerLaserImg.get_height()*3))
-    playerLaserPos = []
-    playerLaserState = []
-    playerLaserPosChange = [0, -1200]
-    playerLaserRect = []
-    for i in range(24):
-        playerLaserPos.append([0, 0])
-        playerLaserState.append("ready")
-        playerLaserRect.append(pygame.Rect(playerLaserPos[i][0] + playerLaserImg.get_width()*2, playerLaserPos[i][1] - playerLaserImg.get_height()*0.36, playerLaserImg.get_width(), playerLaserImg.get_height()))
-
     def playerLaser(num):
         #playerLaserImg = pygame.image.load(f"./img/PlayerLaser.png").convert_alpha()
         playerLaserImg = load_svg(f"./img/PlayerLaser.svg")
@@ -190,7 +194,7 @@ async def main():
         playerLaserRect[num] = pygame.Rect(playerLaserPos[i][0] + playerLaserImg.get_width()*2, playerLaserPos[i][1] - playerLaserImg.get_height()*0.36, playerLaserImg.get_width(), playerLaserImg.get_height())
         if playerLaserState[num] == "fire":
             screen.blit(playerLaserImg, ((playerLaserPos[num][0]+camShake[0])*WindowXscale + playerLaserImg.get_width() + 26.666667*WindowScale, (playerLaserPos[num][1]+camShake[1])*WindowYscale))
-            
+        
     ''' def draw_text(text, font, color, x, y, align):
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect()
@@ -212,7 +216,18 @@ async def main():
             font.render_to(screen, (x, y), text, color)
         elif align == 'right':
             font.render_to(screen, (text_rect.center[0]*2 - text_rect.width + x, y), text, color)
-
+    
+    # Title and Icon and background
+    pygame.display.set_caption("1978")
+    icon = pygame.image.load('./img/SPACE FIGHTERS SVG icons8.png')
+    pygame.display.set_icon(icon)
+    background = pygame.image.load('./img/5438849.jpg').convert_alpha()
+    background = pygame.transform.scale(background, (screen_width, screen_height))
+    backgroundRect = pygame.Rect(background.get_rect())
+    background2 = load_svg('./img/vignette.svg')
+    background2 = pygame.transform.scale(background2, (screen_width, screen_height))
+    backgroundRect2 = pygame.Rect(background2.get_rect())
+    
     # Game Loop
     running = 1
     score = Decimal(0)
@@ -224,14 +239,8 @@ async def main():
     timeScale = 1
     GameFPS = 1/delta_time #60
     GameOver = 0
-    def constrain(val, min_val, max_val):
-        if val < min_val: return min_val
-        if val > max_val: return max_val
-        return val
-
-    particles = []
-
-    MUSIC_SETUP()
+    camShake = [0, 0]
+    camShake2 = [0, 0]
     
     while running:
         mos_x, mos_y = pygame.mouse.get_pos()
@@ -249,7 +258,7 @@ async def main():
         start_time += (1-timeScale) * delta_time
         delta_time *= timeScale
         game_time = time.time() - start_time
-        if delta_time > 0:
+        if Decimal(delta_time) > 0:
             GameFPS = 1/delta_time
         else:
             GameFPS = math.inf
@@ -268,7 +277,10 @@ async def main():
                             playerLaserState[i] = "fire"
                             PlayerLaserNum += 1
                             playerLaserPos[i][1] = playerPos[1]+50
-                            pygame.mixer.Sound("./audio/PlayerLaserShoot.wav").play()
+                            if sys.platform == "emscripten":
+                                pygame.mixer.Sound("./audio/PlayerLaserShoot.ogg").play()
+                            else:
+                                pygame.mixer.Sound("./audio/PlayerLaserShoot.wav").play()
                             break 
         if not pygame.mixer.music.get_busy():
             MUSIC_SETUP()
@@ -347,7 +359,10 @@ async def main():
                     score += Decimal(100)
                     camShake2[0] += 12
                     camShake2[1] += 12
-                    pygame.mixer.Sound("./audio/EnemyExplosion.wav").play()
+                    if sys.platform == "emscripten":
+                        pygame.mixer.Sound("./audio/EnemyExplosion.ogg").play()
+                    else:
+                        pygame.mixer.Sound("./audio/EnemyExplosion.wav").play()
                     for k in range(10):
                         particles.append([[playerLaserPos[i][0] + playerLaserImg.get_width()*2, playerLaserPos[i][1]], [math.sin(random.randrange(-180, 180))*240, math.cos(random.randrange(-180, 180))*240], random.randint(6, 9), -5, RED])
                     enemyImageNumber[j] = random.randint(1,9)
@@ -440,3 +455,7 @@ async def main():
 
 # This is the program entry point:
 asyncio.run(main())
+
+# Do not add anything from here, especially sys.exit/pygame.quit
+# asyncio.run is non-blocking on pygame-wasm and code would be executed
+# right before program start main()
